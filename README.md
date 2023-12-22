@@ -7,7 +7,8 @@
     - [Quick Overview](#quick-overview)
     - [Sources](#sources)
     - [Processing](#processing)
-  - [Deep Learning and Tabular Data](#deep-learning-and-tabular-data)
+  - [Deep Learning for Tabular Data](#deep-learning-for-tabular-data)
+  - [MS Data Corruption](#ms-data-corruption)
 
 <!-- /code_chunk_output -->
 
@@ -38,8 +39,17 @@ That being said, I scrapped the internet and pulled together the following data 
 * Mass Bank of Europe ([MoE](https://github.com/MassBank/MassBank-data/releases/)): I took the latest (2023.11) release of the NIST and RIKEN MSP files.
 
 ### Processing
-There's a more complete explanation of how the data was processed in the data directory of htis repo, but here's the short version:
-1. 
-2. 
+There's a more complete explanation of how the data was processed in the data directory of this repo, but here's the short version:
+1. I parsed every MSP file and pulled out each spectrum that was provided regardless of what information it was missing. The only essential pieces that were needed were: (1) and InChI key for the compound, (2) a precursor ion mass, and (3) the MS2 spectra, pairs of masses and intensities. Each spectrum was saved as a CSV file: the first row is the precursor ion's mass with an intensity of zero, the susbsequent rows are the MS2 spectra sorted by decreasing mass.
+2. The MS2 intensities were normalized so that the most intense peak had a normalized intensity of 100. All other fragment peaks' intensities are normalized to the max intensity. THe precursor ion always has an intesity of zero.
+3. For every full length InChI key, I took the first block (the 2D connectivity portion) and created a JSON file for each unique compound. 
+4. I used PubChem to find SMILES for each compound, then standardized them using RDKit. I also got compound formulas, bit and count fingerprints (Morgan, RDKit, Atom Pair, and Torsion) whenever possible.
+5. For self supervised learning (**split 1**), I took all the spectra and their 2D InChI keys and used them to do a group split to generate train/val/test sets. I used an 80/10/10 split. In this case, it didn't matter if I was able to find SMILES, formulas, or fingerprints for the associated compounds.
+6. For semi supervised learning (**split 2**), I removed spectra whose InChI keys I could not identify using PubChem. I took the remaining spectra and their associated 2D InChI keys to do a similar 80/10/10 train/val/test split.
 
-## Deep Learning and Tabular Data
+## Deep Learning for Tabular Data
+Others have pointed out that deep learning models have advanced tremendously for image (CNN) and sequence (Transformer) data. Following close behind are models for graph data (GNN) which are very common in cheminformatics. However, deep learning for tabular data are not as prevalent but I have found this [resource](https://github.com/wwweiwei/awesome-self-supervised-learning-for-tabular-data) that keeps track of developments in DL for tabular data.
+
+
+
+## MS Data Corruption

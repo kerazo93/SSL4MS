@@ -53,14 +53,15 @@ Others have pointed out that deep learning models have advanced tremendously for
 
 
 ## MS Data Corruption
-The two columns (masses and intensities) need to be corrupted differently. For the masses, I have come up with a neutral loss based way of shifting the values:
-* For each mass $m_i$ selected for corruption, replace it with the mass plus or minus a neutral loss $\delta_i$ that's smaller than $m_i$ to avoid generating negative masses. Put another way: 
+The two columns (masses and intensities) need to be corrupted differently. For the masses, I have come up with a neutral loss based way of shifting the values.
+
+For each mass $m_i$ selected for corruption, replace it with the mass plus or minus a neutral loss $\delta_i$ that's smaller than $m_i$ to avoid generating negative masses. This is the straightforward option. Put another way: 
 
 ```math
 \tilde{m_i} = m_i \pm \delta_i \quad \text{s.t.} \quad \delta_i < m_i
 ```
 
-* Here's a more complex approach: for each mass $m_i$ selected for corruption, find a larger unselected mass $m_j$ and replace $m_i$ with $m_j$ plus or minus a neutral loss $\delta_i$ that's smaller than $m_j$. Or: 
+Here's a more complex approach: for each mass $m_i$ selected for corruption, find a larger unselected mass $m_j$ and replace $m_i$ with $m_j$ plus or minus a neutral loss $\delta_i$ that's smaller than $m_j$. Or: 
 
 ```math
 \tilde{m_i} = m_j \pm \delta_i \quad \text{s.t.} \quad \delta_i < m_j \quad \text{and} \quad m_j>m_i

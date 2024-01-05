@@ -54,8 +54,9 @@ Others have pointed out that deep learning models have advanced tremendously for
 
 ## MS Data Corruption
 The two columns (masses and intensities) need to be corrupted differently. For the masses, I have come up with a neutral loss based way of shifting the values:
-* For each mass $m_i$ selected for corruption, replace it with the mass plus or minus a neutral loss $\delta_i$ that's smaller than $m_i$ to avoid generating negative masses. Put another way: $\tilde{m_i} = m_i \pm \delta_i, \quad \text{s.t.} \quad \delta_i<m_i$. This is the more straightforward approach.
-* Here's a more complex approach: for each mass $m_i$ selected for corruption, find a larger unselected mass $m_j$ (so that $m_j > m_i$ and $j<i$ given the reverse sorting) and replace $m_i$ with $m_j$ plu sor minus a neutral loss $\delta_i$ that's smaller than $m_j$. Or: $\tilde{m_i} = m_j \pm \delta_i, \quad \text{s.t.} \quad \delta_i<m_j \quad \text{and} \quad m_j>m_i$.
+* For each mass $m_i$ selected for corruption, replace it with the mass plus or minus a neutral loss $\delta_i$ that's smaller than $m_i$ to avoid generating negative masses. Put another way: $\tilde{m_i} = m_i \pm \delta_i \quad \text{s.t.} \quad \delta_i < m_i$. This is the more straightforward approach.
+
+* Here's a more complex approach: for each mass $m_i$ selected for corruption, find a larger unselected mass $m_j$ (so that $m_j > m_i$ and $j<i$ given the reverse sorting) and replace $m_i$ with $m_j$ plus or minus a neutral loss $\delta_i$ that's smaller than $m_j$. Or: $\tilde{m_i} = m_j \pm \delta_i \quad \text{s.t.} \quad \delta_i < m_j \quad \text{and} \quad m_j>m_i$.
 
 For the intensities, the most straightforward way to corrupt them is to select $n$ random values to alter, find the sum of those values, and then generate another set of $n$ random values that will add up to the sum. In this way, the total intensity remains the same between the original and corrupted spectra.
 

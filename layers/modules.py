@@ -17,7 +17,7 @@ class GLU(nn.Module):
     
 
 
-class EncoderGLU(nn.Module)
+class EncoderGLU(nn.Module):
     def __init__(self):
         super().__init__()
 

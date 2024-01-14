@@ -70,3 +70,9 @@ Here's a more complex approach: for each mass $m_i$ selected for corruption, fin
 For the intensities, the most straightforward way to corrupt them is to select $n$ random values to alter, find the sum of those values, and then generate another set of $n$ random values that will add up to the sum. In this way, the total intensity remains the same between the original and corrupted spectra.
 
 I got the list of neutral losses from the [MS2Analyzer](https://pubs.acs.org/doi/10.1021/ac502818e) paper. The supporting information has an Excel file describing common neutral losses observed in metabolomics MS2 data.
+
+## Self-Supervised Learning
+
+## Semi-Supervised Learning
+
+### Sequential Approach 

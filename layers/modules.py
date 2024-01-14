@@ -12,7 +12,6 @@ class GLU(nn.Module):
         self.linear2 = nn.Linear(in_features=self.glu_dim, out_features=self.glu_dim)
 
     def forward(self, x):
-
         return self.linear1(x) * self.act(self.linear2(x))
     
 

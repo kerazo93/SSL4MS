@@ -1,4 +1,5 @@
-.ipynb_checkpoints
-dataloader_WS.ipynb
-layers_WS.ipynb
-__pycache__
+*.ipynb_checkpoints
+*dataloader_WS.ipynb
+*layers_WS.ipynb
+*__pycache__
+*.DS_Store

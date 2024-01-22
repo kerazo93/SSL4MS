@@ -93,10 +93,23 @@ class SpectrumDecoder(nn.Module):
 
 
 class SpectrumSymmetricAE(nn.Module):
-    def __init__(self):
+    def __init__(self, num_heads, ffn_factor, dropout, act=nn.Sigmoid(), hidden_dims=None):
         super().__init__()
+        self.num_heads = num_heads
+        self.ffn_factor = ffn_factor
+        self.dropout = dropout
+        self.act = act
+        if hidden_dims is None:
+            self.hidden_dims = [self.num_heads*i for i in range(2,8,2)]
+        else:
+            assert isinstance(hidden_dims, list) and all(isinstance(elem, int) for elem in hidden_dims), "hidden_dims must be a LIST of INTEGERS that are multiples of num_heads"
+            self.hidden_dims = hidden_dims
 
-
+        self.encoder = SpectrumEncoder(num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act, hidden_dims=self.hidden_dims)
+        self.decoder = SpectrumDecoder(num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act, hidden_dims=self.hidden_dims)
 
     def forward(self, x):
-        pass
+        x_enc, x_mask = self.encoder(x)
+        x_dec = self.decoder(x_enc, x_mask)
+
+        return x_dec, x_enc, x_mask

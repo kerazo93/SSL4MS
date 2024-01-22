@@ -6,3 +6,4 @@ layers/.ipynb_checkpoints
 utils/__pycache__
 .DS_Store
 models/__pycache__
+experiments/selfsupervised/.ipynb_checkpoints

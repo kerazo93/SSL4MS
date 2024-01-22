@@ -1,10 +1,11 @@
-from layers.modules import PositionalEncoding, EncoderLayerGLU
+from layers.modules import PositionalEncoding 
+from layers.transformer_layers import EncoderLayerGLU
 import torch
 from torch import nn
 
 
 class EncoderBlock(nn.Module):
-    def __init__(self, in_dim, out_dim, num_heads, ffn_factor, dropout, act):
+    def __init__(self, in_dim, out_dim, num_heads, ffn_factor, dropout, act, max_len):
         super().__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
@@ -12,8 +13,10 @@ class EncoderBlock(nn.Module):
         self.ffn_factor = ffn_factor
         self.dropout = dropout
         self.act = act
+        self.max_len = max_len
+        
 
-
+        self.pe = PositionalEncoding(d_model=self.out_dim, dropout=self.dropout, max_len=self.max_len)
         # ADD POSITIONAL ENCODINGS AFTER CNN / BEFORE ENCODER BLOCK
         self.cnn = nn.Conv1d(in_channels=self.in_dim, out_channels=self.out_dim, padding='same', stride=1, kernel_size=1)
         self.enc = EncoderLayerGLU(d_model=self.out_dim, num_heads=self.num_heads, d_ffn=self.ffn_factor*self.out_dim, act=self.act, dropout=self.dropout)
@@ -23,18 +26,20 @@ class EncoderBlock(nn.Module):
         x = self.cnn(x)
         x = torch.permute(x, (0,2,1))
         x = x * ~mask.unsqueeze(2)
+        x = self.pe(x)
         x = self.enc(x, mask)
         return x
 
 
 
 class SpectrumEncoder(nn.Module):
-    def __init__(self, num_heads, ffn_factor, dropout, act, hidden_dims):
+    def __init__(self, num_heads, ffn_factor, dropout, act, hidden_dims, max_len):
         super().__init__()
         self.num_heads = num_heads
         self.ffn_factor = ffn_factor
         self.dropout = dropout
         self.act = act
+        self.max_len = max_len
 
         self.hidden_dims = sorted(hidden_dims)
         self.all_dims = [2] + self.hidden_dims
@@ -42,7 +47,7 @@ class SpectrumEncoder(nn.Module):
         self.enc_list = nn.ModuleList()
 
         for a,b in zip(self.all_dims, self.all_dims[1:]):
-            enc_layer = EncoderBlock(in_dim=a, out_dim=b, num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act)
+            enc_layer = EncoderBlock(in_dim=a, out_dim=b, num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act, max_len=self.max_len)
             self.enc_list.append(enc_layer)
 
 
@@ -60,19 +65,20 @@ class SpectrumEncoder(nn.Module):
 
 
 class SpectrumDecoder(nn.Module):
-    def __init__(self, num_heads, ffn_factor, dropout, act, hidden_dims):
+    def __init__(self, num_heads, ffn_factor, dropout, act, hidden_dims, max_len):
         super().__init__()
         self.num_heads = num_heads
         self.ffn_factor = ffn_factor
         self.dropout = dropout
         self.act = act
+        self.max_len = max_len
 
         self.hidden_dims = sorted(hidden_dims, reverse=True)
 
         self.dec_list = nn.ModuleList()
 
         for a,b in zip(self.hidden_dims, self.hidden_dims[1:]):
-            dec_layer = EncoderBlock(in_dim=a, out_dim=b, num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act)
+            dec_layer = EncoderBlock(in_dim=a, out_dim=b, num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act, max_len=self.max_len)
             self.dec_list.append(dec_layer)
 
         self.final_cnn = nn.Conv1d(in_channels=self.hidden_dims[-1], out_channels=2, padding='same', stride=1, kernel_size=1)
@@ -92,20 +98,21 @@ class SpectrumDecoder(nn.Module):
 
 
 class SpectrumSymmetricAE(nn.Module):
-    def __init__(self, num_heads, ffn_factor, dropout, act=nn.Sigmoid(), hidden_dims=None):
+    def __init__(self, num_heads, ffn_factor, dropout, max_len, act=nn.Sigmoid(), hidden_dims=None):
         super().__init__()
         self.num_heads = num_heads
         self.ffn_factor = ffn_factor
         self.dropout = dropout
         self.act = act
+        self.max_len = max_len
         if hidden_dims is None:
             self.hidden_dims = [self.num_heads*i for i in range(2,8,2)]
         else:
             assert isinstance(hidden_dims, list) and all(isinstance(elem, int) for elem in hidden_dims), "hidden_dims must be a LIST of INTEGERS that are multiples of num_heads"
             self.hidden_dims = hidden_dims
 
-        self.encoder = SpectrumEncoder(num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act, hidden_dims=self.hidden_dims)
-        self.decoder = SpectrumDecoder(num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act, hidden_dims=self.hidden_dims)
+        self.encoder = SpectrumEncoder(num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act, hidden_dims=self.hidden_dims, max_len=self.max_len)
+        self.decoder = SpectrumDecoder(num_heads=self.num_heads, ffn_factor=self.ffn_factor, dropout=self.dropout, act=self.act, hidden_dims=self.hidden_dims, max_len=self.max_len)
 
     def forward(self, x):
         x_enc, x_mask = self.encoder(x)

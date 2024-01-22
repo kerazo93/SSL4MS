@@ -1,5 +1,4 @@
-from layers.modules import PositionalEncoding
-from layers.transformer_layers import EncoderLayerGLU
+from layers.modules import PositionalEncoding, EncoderLayerGLU
 import torch
 from torch import nn
 

@@ -1,4 +1,5 @@
-from layers.modules import PositionalEncoding, EncoderLayerGLU, DecoderLayerGLU
+from layers.modules import PositionalEncoding
+from layers.transformer_layers import EncoderLayerGLU
 import torch
 from torch import nn
 
@@ -13,6 +14,8 @@ class EncoderBlock(nn.Module):
         self.dropout = dropout
         self.act = act
 
+
+        # ADD POSITIONAL ENCODINGS AFTER CNN / BEFORE ENCODER BLOCK
         self.cnn = nn.Conv1d(in_channels=self.in_dim, out_channels=self.out_dim, padding='same', stride=1, kernel_size=1)
         self.enc = EncoderLayerGLU(d_model=self.out_dim, num_heads=self.num_heads, d_ffn=self.ffn_factor*self.out_dim, act=self.act, dropout=self.dropout)
 
@@ -55,10 +58,6 @@ class SpectrumEncoder(nn.Module):
             x = layer(x, mask)
 
         return x, mask
-
-
-
-
 
 
 class SpectrumDecoder(nn.Module):

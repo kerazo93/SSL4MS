@@ -115,6 +115,7 @@ class MassSpectraSelfSupervisedDataset(Dataset):
 class MassSpecSelfSupervisedDataModule(L.LightningDataModule):
     def __init__(self, root_dir, train_csv, val_csv, test_csv, nl_csv, corrupt_prob, max_len, batch_size):
         super().__init__()
+        self.save_hyperparameters()
         self.root_dir = root_dir
         self.train_csv = train_csv
         self.val_csv = val_csv
@@ -147,10 +148,10 @@ class MassSpecSelfSupervisedDataModule(L.LightningDataModule):
                                 max_len=self.max_len)
             
     def train_dataloader(self):
-        return DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
+        return DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True, num_workers=15, pin_memory=True, persistent_workers=True)
 
     def val_dataloader(self):
-        return DataLoader(self.val_ds, batch_size=self.batch_size, shuffle=False)
+        return DataLoader(self.val_ds, batch_size=self.batch_size, shuffle=False, num_workers=15, pin_memory=True, persistent_workers=True)
 
     def test_dataloader(self):
-        return DataLoader(self.test_ds, batch_size=self.batch_size, shuffle=False)
+        return DataLoader(self.test_ds, batch_size=self.batch_size, shuffle=False, num_workers=15, pin_memory=True, persistent_workers=True)
